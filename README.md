@@ -53,16 +53,7 @@ Each sample contains three orthogonal accelerograms (HNE, HNN, HNZ) and is label
 
 - `BadQuality`: Signals that fail one or more of the above criteria due to noise, spikes, clipping, missing metadata, or artifacts.
 
-### Accessing the Data
 
-- Visit the [ESM Database](https://esm.mi.ingv.it/)
-- Organize your data in the following format:
-
-```plaintext
-./data/Pipeline/
-├── GoodQuality/
-└── BadQuality/
-  ```
 ---
 
 ## Project Structure

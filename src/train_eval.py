@@ -9,10 +9,40 @@ from torch.utils.data import Subset, DataLoader
 import numpy as np
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
 
-
-from utils.plotting import plot_loss_curves, plot_accuracy_curves
 from utils.metrics import test_model  
+
+
+# -------------------------- Plotting -------------------------- #
+def plot_loss_curves(train_losses, val_losses):
+    plt.figure()
+    plt.plot(train_losses, label="Train Loss", color="blue")
+    plt.plot(val_losses, label="Validation Loss", color="orange")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Training & Validation Loss")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+    plt.close()
+
+
+def plot_accuracy_curves(train_acc, val_acc):
+    plt.figure()
+    plt.plot(train_acc, label="Train Accuracy", color="green")
+    plt.plot(val_acc, label="Validation Accuracy", color="red")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.title("Training & Validation Accuracy")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+    plt.close()
+
+
 # -------------------------- Training & Validation -------------------------- #
 def train_and_validate(model, train_loader, val_loader, criterion, optimizer, scheduler, num_epochs, model_name):
     train_losses, val_losses = [], []
@@ -134,13 +164,10 @@ def run_cross_validation(dataset, model_class, model_args, model_name, device,
         df = pd.DataFrame(all_fold_metrics)
         df.to_csv(f"./results/{model_name}_cv_results.csv", index=False)
 
-
         plot_loss_curves(train_losses, val_losses)
         plot_accuracy_curves(train_acc, val_acc)
-        
 
     return all_fold_metrics
-                            
 
 
 # -------------------------- K-Fold Split Generator -------------------------- #

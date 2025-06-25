@@ -84,7 +84,7 @@ def count_and_load_complete_samples(data_path, prefix, label):
 
 
 # -------------------------- Load & Split -------------------------- #
-def prepare_datasets(data_dir, max_samples_per_class=22250, balance_classes=True):
+def prepare_dataset(data_dir, max_samples_per_class=22250, balance_classes=True):
     good_dir = os.path.join(data_dir, "GoodQuality")
     bad_dir = os.path.join(data_dir, "BadQuality")
 
@@ -98,12 +98,7 @@ def prepare_datasets(data_dir, max_samples_per_class=22250, balance_classes=True
     all_samples = list(good_samples.values()) + list(bad_samples.values())
     random.shuffle(all_samples)
 
-    train_val, test = train_test_split(
-        all_samples, test_size=0.2, stratify=[s['label'] for s in all_samples], random_state=42)
-    train, val = train_test_split(
-        train_val, test_size=0.25, stratify=[s['label'] for s in train_val], random_state=42)
-
-    return train, val, test
+    return all_samples
 
 
 # -------------------------- Transforms & Loaders -------------------------- #

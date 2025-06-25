@@ -107,6 +107,8 @@ def test_model(model, test_loader, criterion, model_path):
     test_auc = evaluate_model(torch.cat(all_preds), torch.cat(all_targets))
 
     print(f"\nTest Loss: {test_loss:.4f}, Test Accuracy: {test_acc:.4f}, Test AUC: {test_auc:.4f}")
+    return test_loss, test_acc, test_auc
+
 
 
 def generate_10_fold_cv_indices(labels):
@@ -160,13 +162,16 @@ def run_cross_validation(dataset, model_class, model_args, model_name, device,
         )
 
         best_model_path = f"./saved_models/best_{model_name}_fold{fold_idx+1}.pth"
-        test_model(model, test_loader, criterion, best_model_path)
+        test_loss, test_acc, test_auc = test_model(model, test_loader, criterion, best_model_path)
 
         fold_metrics = {
             'train_accuracy': train_acc[-1],
             'val_accuracy': val_acc[-1],
-            'val_auc': val_auc[-1]
+            'val_auc': val_auc[-1],
+            'test_accuracy': test_acc,
+            'test_auc': test_auc
         }
+
         all_fold_metrics.append(fold_metrics)
 
         plot_loss_curves(train_losses, val_losses)

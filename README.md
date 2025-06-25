@@ -1,67 +1,68 @@
 # Seismic-Signal-Quality-Assessment
 
-This repository contains a **Convolutional Neural Network (CNN)** framework for fully automatic classification of seismic signal quality. It is based on our study using the **Engineering Strong-Motion (ESM) Database** and evaluates multiple custom CNN architectures on spectrograms of seismic waveforms.
+_Deep learning pipeline for automatic seismic waveform quality classification using spectrograms._
 
 ---
 
 ## Abstract
 
-The rapid expansion of seismic data from global networks demands reliable, scalable, and automated methods for evaluating signal quality—an essential step in ensuring accurate seismic analyses.
+The rapid expansion of seismic data from global networks demands scalable, automated methods for evaluating waveform quality—an essential step in ensuring accurate seismic analyses.
 
-This project presents a CNN-based framework for automatic seismic signal quality assessment. We explore three custom architectures:
-- `VGG-Variant`  
-- `ResNet-Variant`  
-- `InceptionNet-Variant`  
+We introduce a CNN-based framework for automatic seismic signal quality assessment. The system operates on spectrograms of three-component strong-motion records and is trained using data from the Engineering Strong-Motion (ESM) Database. Three custom architectures are implemented and compared:
 
-Through a systematic study of data augmentation techniques, we find that:
-- **Time stretching**, **time shifting**, and **horizontal flipping** improve model generalization.
-- Techniques like **rotation**, **Gaussian noise**, and **frequency masking** degrade performance.
+- `VGG-Variant`
+- `ResNet-Variant`
+- `InceptionNet-Variant`
 
-Our best model, the `ResNet-Variant`, achieves:
+A systematic analysis of data augmentation techniques reveals that:
+
+- Domain-aware augmentations such as **time stretching**, **time shifting**, and **horizontal flipping** improve model generalization.
+- Non-physical augmentations like **rotation**, **Gaussian noise**, and **frequency masking** degrade performance.
+
+Our best-performing model, the `ResNet-Variant`, achieves:
+
 - **Accuracy**: 99.61%  
-- **AUC**: 0.9999  
+- **AUC**: 0.9999
 
-These findings highlight the critical role of **domain-aware data augmentation** in CNN-based seismic classification.
+These results emphasize the importance of domain-specific augmentation in improving CNN performance for seismic tasks.
 
 ---
 
 ## Dataset
 
-We use processed strong-motion data from the **Engineering Strong-Motion (ESM) Database**, which contains over **80,000 three-component waveforms** from:
+The dataset consists of processed strong-motion recordings from the **Engineering Strong-Motion (ESM) Database**, comprising over **80,000** three-component accelerograms from:
 
-* **ITACA (Italy)**
-* **TR-NSMN (Turkey)**
-* **HEAD (Greece)**
+- **ITACA (Italy)**
+- **TR-NSMN (Turkey)**
+- **HEAD (Greece)**
 
-Each data sample includes three orthogonal accelerograms (north-south, east-west, vertical) and is labeled as:
+Each sample contains three orthogonal accelerograms (HNE, HNN, HNZ) and is labeled as follows:
 
-* **`GoodQuality`**:
-  Signals that meet strict quality-control criteria, including:
+**Labels:**
 
-  * Complete metadata
-  * All three channels present and non-empty
-  * Sufficient pre-event and coda durations
-  * High signal-to-noise ratio
-  * Reasonable frequency passband
-  * Only one seismic event per record
-  * Consistent peak values across components
-  * Free of spikes or discontinuities
-  * Physically plausible acceleration and displacement spectra
+- `GoodQuality`: Signals meeting strict quality-control criteria, including:
+  - Complete metadata
+  - Three non-empty components
+  - Sufficient pre-event and coda duration
+  - High signal-to-noise ratio
+  - Reasonable frequency passband
+  - No overlapping events
+  - Physically consistent component amplitudes
+  - No spikes, clipping, or discontinuities
+  - Valid displacement/acceleration spectra
 
-* **`BadQuality`**:
-  Signals that fail to meet one or more of the above criteria due to noise contamination, missing metadata, spurious spikes, clipping, or recording artifacts.
+- `BadQuality`: Signals that fail one or more of the above criteria due to noise, spikes, clipping, missing metadata, or artifacts.
 
-To access the dataset:
+### Accessing the Data
 
-* Visit the [ESM Database](https://esm.mi.ingv.it/) 
-* Organize your data into:
+- Visit the [ESM Database](https://esm.mi.ingv.it/)
+- Organize your data in the following format:
 
-  ```plaintext
-  ./data/Pipeline/
-  ├── GoodQuality/
-  └── BadQuality/
-  ```
-
+```plaintext
+./data/Pipeline/
+├── GoodQuality/
+└── BadQuality/
+  
 ---
 
 ## Project Structure
@@ -74,7 +75,6 @@ Seismic-Signal-Quality-Assessment/
 │   ├── models.py           # VGG, ResNet, and Inception custom architectures
 │   ├── train_eval.py       # Cross-validation logic, training, evaluation
 │   ├── metrics.py          # Test metrics: accuracy, AUC, confusion, ROC
-│   ├── plotting.py         # Accuracy/loss visualization for each fold
 ├── data/
 │   └── Pipeline/
 │       ├── GoodQuality/

@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 
+import time
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+import matplotlib.pyplot as plt
 from torch.utils.data import Subset, DataLoader
 
 import numpy as np
-import os
 import pandas as pd
-import matplotlib.pyplot as plt
-
+from sklearn.metrics import roc_curve, auc
 from utils.metrics import test_model  
+
 
 
 # -------------------------- Plotting -------------------------- #
@@ -44,22 +46,25 @@ def plot_accuracy_curves(train_acc, val_acc):
 
 
 # -------------------------- Training & Validation -------------------------- #
-def train_and_validate(model, train_loader, val_loader, criterion, optimizer, scheduler, num_epochs, model_name):
+
+def train_and_validate(model, train_loader, val_loader, criterion, optimizer, scheduler, num_epochs, model_name, device, patience=10):
+    start_time = time.time()
     train_losses, val_losses = [], []
     train_accuracies, val_accuracies, val_roc_aucs = [], [], []
 
     best_val_loss = float('inf')
-    best_model_path = f"./saved_models/best_{model_name}.pth"
+    best_model_state = None
+    epochs_without_improvement = 0
 
     for epoch in range(num_epochs):
         model.train()
         running_loss, correct, total = 0.0, 0, 0
 
         for inputs, targets in train_loader:
-            inputs, targets = inputs.cuda(), targets.float().cuda()
+            inputs, targets = inputs.to(device), targets.float().to(device)
+            optimizer.zero_grad()
             outputs = model(inputs).squeeze()
             loss = criterion(outputs, targets)
-            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
@@ -73,14 +78,14 @@ def train_and_validate(model, train_loader, val_loader, criterion, optimizer, sc
         train_losses.append(train_loss)
         train_accuracies.append(train_acc)
 
-        # Validation
+        # ---- Validation ---- #
         model.eval()
         running_loss, correct, total = 0.0, 0, 0
         all_preds, all_targets = [], []
 
         with torch.no_grad():
             for inputs, targets in val_loader:
-                inputs, targets = inputs.cuda(), targets.float().cuda()
+                inputs, targets = inputs.to(device), targets.float().to(device)
                 outputs = model(inputs).squeeze()
                 loss = criterion(outputs, targets)
 
@@ -102,16 +107,28 @@ def train_and_validate(model, train_loader, val_loader, criterion, optimizer, sc
 
         scheduler.step(val_loss)
 
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            torch.save(model.state_dict(), best_model_path)
-
         print(f"Epoch {epoch+1}/{num_epochs} "
               f"Train Loss: {train_loss:.4f}, Acc: {train_acc:.4f} | "
               f"Val Loss: {val_loss:.4f}, Acc: {val_acc:.4f}, AUC: {val_auc:.4f}")
 
-    return train_losses, val_losses, train_accuracies, val_accuracies, val_roc_aucs
+        # ---- Early Stopping Check ---- #
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            best_model_state = model.state_dict()
+            epochs_without_improvement = 0
+        else:
+            epochs_without_improvement += 1
+            if epochs_without_improvement >= patience:
+                print(f"⏹️ Early stopping triggered after {patience} epochs without improvement.")
+                break
 
+    # ---- Save and Load Best Model ---- #
+    if best_model_state is not None:
+        model_path = f"./saved_models/best_{model_name}.pth"
+        torch.save(best_model_state, model_path)
+        model.load_state_dict(best_model_state)
+
+    return train_losses, val_losses, train_accuracies, val_accuracies, val_roc_aucs
 
 # -------------------------- Cross-Validation -------------------------- #
 def run_cross_validation(dataset, model_class, model_args, model_name, device,

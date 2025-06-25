@@ -8,6 +8,8 @@ from torch.utils.data import Subset, DataLoader
 
 import numpy as np
 import os
+import pandas as pd
+
 
 from utils.plotting import plot_loss_curves, plot_accuracy_curves
 from utils.metrics import test_model  
@@ -129,11 +131,16 @@ def run_cross_validation(dataset, model_class, model_args, model_name, device,
         }
 
         all_fold_metrics.append(fold_metrics)
+        df = pd.DataFrame(all_fold_metrics)
+        df.to_csv(f"./results/{model_name}_cv_results.csv", index=False)
+
 
         plot_loss_curves(train_losses, val_losses)
         plot_accuracy_curves(train_acc, val_acc)
+        
 
     return all_fold_metrics
+                            
 
 
 # -------------------------- K-Fold Split Generator -------------------------- #

@@ -110,14 +110,22 @@ def test_model(model, test_loader, criterion, model_path):
 
 
 def generate_10_fold_cv_indices(labels):
+    from sklearn.model_selection import StratifiedKFold
+    import numpy as np
+
     skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
     folds = [test_idx for _, test_idx in skf.split(np.zeros(len(labels)), labels)]
 
     cv_splits = []
     for i in range(10):
-        test_idx = folds[i]
-        val_idx = folds[(i + 1) % 10]
-        train_idx = np.hstack([folds[j] for j in range(10) if j not in (i, (i + 1) % 10)])
+        test_idx_1 = folds[i]
+        test_idx_2 = folds[(i + 1) % 10]
+        val_idx_1 = folds[(i + 2) % 10]
+        val_idx_2 = folds[(i + 3) % 10]
+
+        test_idx = np.hstack([test_idx_1, test_idx_2])
+        val_idx = np.hstack([val_idx_1, val_idx_2])
+        train_idx = np.hstack([folds[j] for j in range(10) if j not in (i, (i + 1) % 10, (i + 2) % 10, (i + 3) % 10)])
 
         cv_splits.append({
             'train_idx': train_idx,
@@ -126,6 +134,7 @@ def generate_10_fold_cv_indices(labels):
         })
 
     return cv_splits
+
 
 
 def run_cross_validation(dataset, model_class, model_args, model_name, device,

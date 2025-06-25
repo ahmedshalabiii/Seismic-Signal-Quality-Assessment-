@@ -62,7 +62,7 @@ Each sample contains three orthogonal accelerograms (HNE, HNN, HNZ) and is label
 ./data/Pipeline/
 ├── GoodQuality/
 └── BadQuality/
-  
+  ```
 ---
 
 ## Project Structure
